@@ -19,8 +19,8 @@ TechStore adalah landing page untuk toko elektronik dengan fitur lengkap termasu
 ## Cara Menjalankan
 1. Clone repository
 2. Install dependencies: `npm install`
-3. Jalankan aplikasi: `npm start`
-4. Buka browser di `http://localhost:3000`
+3. Jalankan aplikasi: `npm run dev`
+4. Buka browser di ` http://localhost:5173/`
 
 ## Deploy
 Aplikasi ini dapat di-deploy ke:
