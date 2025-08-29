@@ -22,6 +22,12 @@ TechStore adalah landing page untuk toko elektronik dengan fitur lengkap termasu
 3. Jalankan aplikasi: `npm run dev`
 4. Buka browser di ` http://localhost:5173/`
 
+## Cara Menghentikan
+1. Pencet di keyboardbersamaan Ctrl + C
+2. Ketika terdapat perintah (Terminate batch job (Y/N)?)
+3. Pencet N
+4. Aplikasi sudah diberhentikan
+
 ## Deploy
 Aplikasi ini dapat di-deploy ke:
 - Vercel: `vercel --prod`
