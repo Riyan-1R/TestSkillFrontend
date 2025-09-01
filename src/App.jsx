@@ -92,16 +92,10 @@ const TechStore = () => {
 
   const handleAddProduct = () => {
     setEditingProduct(null);
-    setProductForm({
-      name: '',
-      price: '',
-      category: '',
-      description: '',
-      image: ''
-    });
-    setImagePreview('');
-    setShowProductModal(true);
+    setShowProductModal(true); // cukup buka modal, jangan reset form langsung
   };
+
+
 
   const handleEditProduct = (product) => {
     setEditingProduct(product);
@@ -419,7 +413,7 @@ const TechStore = () => {
                 <input
                   type="text"
                   value={productForm.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter product name"
                 />
