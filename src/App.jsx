@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingCart, Phone, Mail, MapPin, Star, Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Search, ShoppingCart, Phone, Mail, MapPin, Star, Plus, Edit2, Trash2, X, Image, Upload } from 'lucide-react';
 
 const TechStore = () => {
   const [currentPage, setCurrentPage] = useState('home');
@@ -42,7 +42,7 @@ const TechStore = () => {
     },
     {
       id: 5,
-      name: 'airpods gen 4',
+      name: 'AirPods Gen 4',
       price: 3999000,
       category: 'Audio',
       image: 'image/earphone.jpg',
@@ -68,8 +68,10 @@ const TechStore = () => {
     name: '',
     price: '',
     category: '',
-    description: ''
+    description: '',
+    image: ''
   });
+  const [imagePreview, setImagePreview] = useState('');
 
   const categories = ['All', 'Smartphone', 'Laptop', 'Tablet', 'Audio'];
 
@@ -94,8 +96,10 @@ const TechStore = () => {
       name: '',
       price: '',
       category: '',
-      description: ''
+      description: '',
+      image: ''
     });
+    setImagePreview('');
     setShowProductModal(true);
   };
 
@@ -105,20 +109,68 @@ const TechStore = () => {
       name: product.name,
       price: product.price.toString(),
       category: product.category,
-      description: product.description
+      description: product.description,
+      image: product.image
     });
+    setImagePreview(product.image);
     setShowProductModal(true);
   };
 
   const handleDeleteProduct = (productId) => {
-    setProducts(products.filter(p => p.id !== productId));
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      setProducts(products.filter(p => p.id !== productId));
+    }
+  };
+
+  // Handle file upload
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageData = e.target.result;
+          setProductForm(prev => ({ ...prev, image: imageData }));
+          setImagePreview(imageData);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert('Please select a valid image file');
+      }
+    }
+  };
+
+  // Fixed: Handle form input changes properly
+  const handleInputChange = (field, value) => {
+    setProductForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUrlChange = (url) => {
+    setProductForm(prev => ({ ...prev, image: url }));
+    setImagePreview(url);
+  };
+
+  const validateImageUrl = (url) => {
+    if (url && !url.startsWith('data:')) {
+      const img = new Image();
+      img.onload = () => setImagePreview(url);
+      img.onerror = () => setImagePreview('');
+      img.src = url;
+    }
   };
 
   const handleSaveProduct = () => {
     if (!productForm.name || !productForm.price || !productForm.category) {
-      alert('Please fill in all required fields');
+      alert('Please fill in all required fields (Name, Price, Category)');
       return;
     }
+
+    if (productForm.price <= 0) {
+      alert('Please enter a valid price');
+      return;
+    }
+
+    const imageUrl = productForm.image || `https://via.placeholder.com/400x400/1f2937/ffffff?text=${encodeURIComponent(productForm.name)}`;
 
     const newProduct = {
       id: editingProduct ? editingProduct.id : Date.now(),
@@ -126,7 +178,7 @@ const TechStore = () => {
       price: parseInt(productForm.price),
       category: productForm.category,
       description: productForm.description,
-      image: `https://via.placeholder.com/300x300/1f2937/ffffff?text=${encodeURIComponent(productForm.name)}`,
+      image: imageUrl,
       rating: editingProduct ? editingProduct.rating : 4.0
     };
 
@@ -137,6 +189,7 @@ const TechStore = () => {
     }
 
     setShowProductModal(false);
+    setImagePreview('');
   };
 
   const Navbar = () => (
@@ -305,10 +358,17 @@ const TechStore = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.slice(0, 3).map((product) => (
               <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-48 object-cover"
+                  onError={(e) => {
+                    e.target.src = `https://via.placeholder.com/400x400/1f2937/ffffff?text=${encodeURIComponent(product.name)}`;
+                  }}
+                />
                 <div className="p-6">
                   <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-                  <p className="text-gray-600 mb-4">{product.description}</p>
+                  <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-bold text-blue-600">{formatPrice(product.price)}</span>
                     <div className="flex items-center">
@@ -335,7 +395,7 @@ const TechStore = () => {
 
   const ProductModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full max-h-screen overflow-y-auto">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">
@@ -348,59 +408,127 @@ const TechStore = () => {
               <X className="w-6 h-6" />
             </button>
           </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Name *
-              </label>
-              <input
-                type="text"
-                value={productForm.name}
-                onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter product name"
-              />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Form Fields */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Name *
+                </label>
+                <input
+                  type="text"
+                  value={productForm.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter product name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price (IDR) *
+                </label>
+                <input
+                  type="number"
+                  value={productForm.price}
+                  onChange={(e) => handleInputChange('price', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter price"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category *
+                </label>
+                <select
+                  value={productForm.category}
+                  onChange={(e) => handleInputChange('category', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select category</option>
+                  {categories.filter(cat => cat !== 'All').map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Upload Image
+                </label>
+                <div className="flex flex-col space-y-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  <div className="text-center text-gray-500">or</div>
+                  <input
+                    type="url"
+                    value={productForm.image.startsWith('data:') ? '' : productForm.image}
+                    onChange={(e) => handleImageUrlChange(e.target.value)}
+                    onBlur={(e) => validateImageUrl(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Or paste image URL"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Upload a file or paste an image URL
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={productForm.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="3"
+                  placeholder="Enter product description"
+                />
+              </div>
             </div>
-            <div>
+
+            {/* Image Preview */}
+            <div className="flex flex-col">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price (IDR) *
+                Image Preview
               </label>
-              <input
-                type="number"
-                value={productForm.price}
-                onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter price"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category *
-              </label>
-              <select
-                value={productForm.category}
-                onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select category</option>
-                {categories.filter(cat => cat !== 'All').map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                value={productForm.description}
-                onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows="3"
-                placeholder="Enter product description"
-              />
+              <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-4 flex items-center justify-center bg-gray-50">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="max-w-full max-h-48 object-contain rounded"
+                    onError={() => setImagePreview('')}
+                  />
+                ) : (
+                  <div className="text-center">
+                    <Image className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">
+                      Upload an image or enter URL to see preview
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 text-xs text-gray-600">
+                <p className="font-medium mb-2">Tips for finding images:</p>
+                <ul className="space-y-1">
+                  <li>• Upload from your device</li>
+                  <li>• Search Google Images for your product</li>
+                  <li>• Right-click and "Copy image address"</li>
+                  <li>• Try Unsplash.com for high-quality photos</li>
+                </ul>
+              </div>
             </div>
           </div>
+
           <div className="flex space-x-3 mt-6">
             <button
               onClick={() => setShowProductModal(false)}
@@ -468,7 +596,14 @@ const TechStore = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <div key={product.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-              <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-48 object-cover"
+                onError={(e) => {
+                  e.target.src = `https://via.placeholder.com/400x400/1f2937/ffffff?text=${encodeURIComponent(product.name)}`;
+                }}
+              />
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-lg font-semibold text-gray-900 flex-1">{product.name}</h3>
@@ -476,12 +611,14 @@ const TechStore = () => {
                     <button
                       onClick={() => handleEditProduct(product)}
                       className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      title="Edit product"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteProduct(product.id)}
                       className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      title="Delete product"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -577,7 +714,8 @@ const TechStore = () => {
         {/* Contact Section */}
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            Hubungi kami</h2>
+            Hubungi Kami
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
