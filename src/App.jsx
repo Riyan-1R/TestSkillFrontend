@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingCart, Phone, Mail, MapPin, Star, Plus, Edit2, Trash2, X, Image, Upload } from 'lucide-react';
+import { Search, ShoppingCart, Phone, Mail, MapPin, Star, Plus, Edit2, Trash2, X, Image, Upload, Minus, CreditCard, Smartphone, Wallet } from 'lucide-react';
 
 const TechStore = () => {
   const [currentPage, setCurrentPage] = useState('home');
@@ -62,18 +62,24 @@ const TechStore = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [showProductModal, setShowProductModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [productForm, setProductForm] = useState({
+  const [cart, setCart] = useState([]);
+  const [showCartModal, setShowCartModal] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [checkoutForm, setCheckoutForm] = useState({
     name: '',
-    price: '',
-    category: '',
-    description: '',
-    image: ''
+    email: '',
+    phone: '',
+    address: '',
+    eWallet: 'gopay'
   });
-  const [imagePreview, setImagePreview] = useState('');
 
   const categories = ['All', 'Smartphone', 'Laptop', 'Tablet', 'Audio'];
+  const eWalletOptions = [
+    { id: 'gopay', name: 'GoPay', icon: Wallet },
+    { id: 'ovo', name: 'OVO', icon: Smartphone },
+    { id: 'dana', name: 'DANA', icon: CreditCard },
+    { id: 'linkaja', name: 'LinkAja', icon: Wallet }
+  ];
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -90,100 +96,91 @@ const TechStore = () => {
     }).format(price);
   };
 
-  const handleAddProduct = () => {
-    setEditingProduct(null);
-    setShowProductModal(true); // cukup buka modal, jangan reset form langsung
-  };
-
-
-
-  const handleEditProduct = (product) => {
-    setEditingProduct(product);
-    setProductForm({
-      name: product.name,
-      price: product.price.toString(),
-      category: product.category,
-      description: product.description,
-      image: product.image
-    });
-    setImagePreview(product.image);
-    setShowProductModal(true);
-  };
-
-  const handleDeleteProduct = (productId) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter(p => p.id !== productId));
-    }
-  };
-
-  // Handle file upload
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const imageData = e.target.result;
-          setProductForm(prev => ({ ...prev, image: imageData }));
-          setImagePreview(imageData);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        alert('Please select a valid image file');
-      }
-    }
-  };
-
-  // Fixed: Handle form input changes properly
-  const handleInputChange = (field, value) => {
-    setProductForm(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleImageUrlChange = (url) => {
-    setProductForm(prev => ({ ...prev, image: url }));
-    setImagePreview(url);
-  };
-
-  const validateImageUrl = (url) => {
-    if (url && !url.startsWith('data:')) {
-      const img = new Image();
-      img.onload = () => setImagePreview(url);
-      img.onerror = () => setImagePreview('');
-      img.src = url;
-    }
-  };
-
-  const handleSaveProduct = () => {
-    if (!productForm.name || !productForm.price || !productForm.category) {
-      alert('Please fill in all required fields (Name, Price, Category)');
-      return;
-    }
-
-    if (productForm.price <= 0) {
-      alert('Please enter a valid price');
-      return;
-    }
-
-    const imageUrl = productForm.image || `https://via.placeholder.com/400x400/1f2937/ffffff?text=${encodeURIComponent(productForm.name)}`;
-
-    const newProduct = {
-      id: editingProduct ? editingProduct.id : Date.now(),
-      name: productForm.name,
-      price: parseInt(productForm.price),
-      category: productForm.category,
-      description: productForm.description,
-      image: imageUrl,
-      rating: editingProduct ? editingProduct.rating : 4.0
-    };
-
-    if (editingProduct) {
-      setProducts(products.map(p => p.id === editingProduct.id ? newProduct : p));
+  const addToCart = (product) => {
+    const existingItem = cart.find(item => item.id === product.id);
+    if (existingItem) {
+      setCart(cart.map(item =>
+        item.id === product.id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      ));
     } else {
-      setProducts([...products, newProduct]);
+      setCart([...cart, { ...product, quantity: 1 }]);
+    }
+  };
+
+  const removeFromCart = (productId) => {
+    setCart(cart.filter(item => item.id !== productId));
+  };
+
+  const updateQuantity = (productId, quantity) => {
+    if (quantity <= 0) {
+      removeFromCart(productId);
+    } else {
+      setCart(cart.map(item =>
+        item.id === productId
+          ? { ...item, quantity }
+          : item
+      ));
+    }
+  };
+
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const getTotalItems = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0);
+  };
+
+  const handleCheckout = () => {
+    if (cart.length === 0) {
+      alert('Keranjang Anda kosong!');
+      return;
+    }
+    setShowCartModal(false);
+    setShowCheckoutModal(true);
+  };
+
+  // Perbaikan: Fungsi untuk mengupdate form checkout
+  const updateCheckoutForm = (field, value) => {
+    setCheckoutForm(prevForm => ({
+      ...prevForm,
+      [field]: value
+    }));
+  };
+
+  const handlePayment = () => {
+    if (!checkoutForm.name || !checkoutForm.email || !checkoutForm.phone || !checkoutForm.address) {
+      alert('Mohon lengkapi semua data pengiriman!');
+      return;
     }
 
-    setShowProductModal(false);
-    setImagePreview('');
+    const selectedWallet = eWalletOptions.find(wallet => wallet.id === checkoutForm.eWallet);
+
+    // Simulasi pembayaran
+    const confirmed = window.confirm(
+      `Konfirmasi Pembayaran\n\n` +
+      `Total: ${formatPrice(getTotalPrice())}\n` +
+      `Metode Pembayaran: ${selectedWallet.name}\n\n` +
+      `Apakah Anda yakin ingin melanjutkan pembayaran?`
+    );
+
+    if (confirmed) {
+      // Simulasi proses pembayaran
+      alert(`Pembayaran berhasil melalui ${selectedWallet.name}!\n\nPesanan Anda akan diproses dan dikirim ke alamat yang tertera.`);
+
+      // Reset cart dan form
+      setCart([]);
+      setCheckoutForm({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        eWallet: 'gopay'
+      });
+      setShowCheckoutModal(false);
+    }
   };
 
   const Navbar = () => (
@@ -215,25 +212,259 @@ const TechStore = () => {
               ))}
             </div>
           </div>
-          <div className="md:hidden">
-            <div className="flex space-x-2">
-              {['Home', 'Products', 'About'].map((item, index) => (
-                <button
-                  key={item}
-                  onClick={() => setCurrentPage(['home', 'products', 'about'][index])}
-                  className={`px-2 py-1 rounded text-xs font-medium ${currentPage === ['home', 'products', 'about'][index]
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700'
-                    }`}
-                >
-                  {item}
-                </button>
-              ))}
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setShowCartModal(true)}
+              className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              <ShoppingCart className="w-6 h-6" />
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {getTotalItems()}
+                </span>
+              )}
+            </button>
+            <div className="md:hidden">
+              <div className="flex space-x-2">
+                {['Home', 'Products', 'About'].map((item, index) => (
+                  <button
+                    key={item}
+                    onClick={() => setCurrentPage(['home', 'products', 'about'][index])}
+                    className={`px-2 py-1 rounded text-xs font-medium ${currentPage === ['home', 'products', 'about'][index]
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-700'
+                      }`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
     </nav>
+  );
+
+  const CartModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Keranjang Belanja</h3>
+            <button
+              onClick={() => setShowCartModal(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {cart.length === 0 ? (
+            <div className="text-center py-8">
+              <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">Keranjang Anda kosong</p>
+              <button
+                onClick={() => {
+                  setShowCartModal(false);
+                  setCurrentPage('products');
+                }}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Mulai Belanja
+              </button>
+            </div>
+          ) : (
+            <div>
+              <div className="space-y-4 mb-6">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded"
+                      onError={(e) => {
+                        e.target.src = `https://via.placeholder.com/64x64/1f2937/ffffff?text=${encodeURIComponent(item.name.charAt(0))}`;
+                      }}
+                    />
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{item.name}</h4>
+                      <p className="text-blue-600 font-medium">{formatPrice(item.price)}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className="p-1 hover:bg-gray-100 rounded"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="font-medium w-8 text-center">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="p-1 hover:bg-gray-100 rounded"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="p-1 text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-lg font-semibold">Total:</span>
+                  <span className="text-xl font-bold text-blue-600">{formatPrice(getTotalPrice())}</span>
+                </div>
+                <button
+                  onClick={handleCheckout}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Checkout
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const CheckoutModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Checkout</h3>
+            <button
+              onClick={() => setShowCheckoutModal(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {/* Order Summary */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-3">Ringkasan Pesanan</h4>
+              <div className="space-y-2">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex justify-between">
+                    <span>{item.name} x {item.quantity}</span>
+                    <span>{formatPrice(item.price * item.quantity)}</span>
+                  </div>
+                ))}
+                <div className="border-t pt-2 mt-2">
+                  <div className="flex justify-between font-bold">
+                    <span>Total:</span>
+                    <span className="text-blue-600">{formatPrice(getTotalPrice())}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Information - PERBAIKAN UTAMA ADA DI SINI */}
+            <div>
+              <h4 className="font-semibold mb-3">Informasi Pengiriman</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nama Lengkap *
+                  </label>
+                  <input
+                    type="text"
+                    value={checkoutForm.name}
+                    onChange={(e) => updateCheckoutForm('name', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masukkan nama lengkap"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    value={checkoutForm.email}
+                    onChange={(e) => updateCheckoutForm('email', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masukkan email"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    No. Telepon *
+                  </label>
+                  <input
+                    type="tel"
+                    value={checkoutForm.phone}
+                    onChange={(e) => updateCheckoutForm('phone', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masukkan nomor telepon"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Alamat Lengkap *
+                  </label>
+                  <textarea
+                    value={checkoutForm.address}
+                    onChange={(e) => updateCheckoutForm('address', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows="3"
+                    placeholder="Masukkan alamat lengkap"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Method */}
+            <div>
+              <h4 className="font-semibold mb-3">Metode Pembayaran</h4>
+              <div className="grid grid-cols-2 gap-3">
+                {eWalletOptions.map((wallet) => {
+                  const IconComponent = wallet.icon;
+                  return (
+                    <button
+                      key={wallet.id}
+                      onClick={() => updateCheckoutForm('eWallet', wallet.id)}
+                      className={`p-4 border rounded-lg flex items-center space-x-3 transition-colors ${checkoutForm.eWallet === wallet.id
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                    >
+                      <IconComponent className="w-6 h-6" />
+                      <span className="font-medium">{wallet.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowCheckoutModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Kembali
+              </button>
+              <button
+                onClick={handlePayment}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Bayar Sekarang
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 
   const Footer = () => (
@@ -363,13 +594,19 @@ const TechStore = () => {
                 <div className="p-6">
                   <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
                   <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-4">
                     <span className="text-2xl font-bold text-blue-600">{formatPrice(product.price)}</span>
                     <div className="flex items-center">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
                       <span className="ml-1 text-gray-600">{product.rating}</span>
                     </div>
                   </div>
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Tambah ke Keranjang
+                  </button>
                 </div>
               </div>
             ))}
@@ -384,161 +621,6 @@ const TechStore = () => {
           </div>
         </div>
       </section>
-    </div>
-  );
-
-  const ProductModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">
-              {editingProduct ? 'Edit Product' : 'Add New Product'}
-            </h3>
-            <button
-              onClick={() => setShowProductModal(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Form Fields */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name *
-                </label>
-                <input
-                  type="text"
-                  value={productForm.name}
-                  onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter product name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price (IDR) *
-                </label>
-                <input
-                  type="number"
-                  value={productForm.price}
-                  onChange={(e) => handleInputChange('price', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter price"
-                  min="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category *
-                </label>
-                <select
-                  value={productForm.category}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select category</option>
-                  {categories.filter(cat => cat !== 'All').map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Upload Image
-                </label>
-                <div className="flex flex-col space-y-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                  <div className="text-center text-gray-500">or</div>
-                  <input
-                    type="url"
-                    value={productForm.image.startsWith('data:') ? '' : productForm.image}
-                    onChange={(e) => handleImageUrlChange(e.target.value)}
-                    onBlur={(e) => validateImageUrl(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Or paste image URL"
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Upload a file or paste an image URL
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={productForm.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows="3"
-                  placeholder="Enter product description"
-                />
-              </div>
-            </div>
-
-            {/* Image Preview */}
-            <div className="flex flex-col">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image Preview
-              </label>
-              <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-4 flex items-center justify-center bg-gray-50">
-                {imagePreview ? (
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="max-w-full max-h-48 object-contain rounded"
-                    onError={() => setImagePreview('')}
-                  />
-                ) : (
-                  <div className="text-center">
-                    <Image className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">
-                      Upload an image or enter URL to see preview
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="mt-4 text-xs text-gray-600">
-                <p className="font-medium mb-2">Tips for finding images:</p>
-                <ul className="space-y-1">
-                  <li>• Upload from your device</li>
-                  <li>• Search Google Images for your product</li>
-                  <li>• Right-click and "Copy image address"</li>
-                  <li>• Try Unsplash.com for high-quality photos</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex space-x-3 mt-6">
-            <button
-              onClick={() => setShowProductModal(false)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveProduct}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              {editingProduct ? 'Update' : 'Add'} Product
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 
@@ -575,13 +657,6 @@ const TechStore = () => {
                   <option key={category} value={category}>{category}</option>
                 ))}
               </select>
-              <button
-                onClick={handleAddProduct}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Product
-              </button>
             </div>
           </div>
         </div>
@@ -599,38 +674,27 @@ const TechStore = () => {
                 }}
               />
               <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900 flex-1">{product.name}</h3>
-                  <div className="flex space-x-1 ml-2">
-                    <button
-                      onClick={() => handleEditProduct(product)}
-                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                      title="Edit product"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                      title="Delete product"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
                 <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <span className="text-lg font-bold text-blue-600">{formatPrice(product.price)}</span>
                   <div className="flex items-center">
                     <Star className="w-4 h-4 text-yellow-400 fill-current" />
                     <span className="ml-1 text-sm text-gray-600">{product.rating}</span>
                   </div>
                 </div>
-                <div className="mt-3">
+                <div className="mb-3">
                   <span className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
                     {product.category}
                   </span>
                 </div>
+                <button
+                  onClick={() => addToCart(product)}
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                >
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Tambah ke Keranjang
+                </button>
               </div>
             </div>
           ))}
@@ -643,7 +707,8 @@ const TechStore = () => {
         )}
       </div>
 
-      {showProductModal && <ProductModal />}
+      {showCartModal && <CartModal />}
+      {showCheckoutModal && <CheckoutModal />}
     </div>
   );
 
