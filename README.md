@@ -3,13 +3,32 @@
 ## Deskripsi
 TechStore adalah landing page untuk toko elektronik dengan fitur lengkap termasuk manajemen produk (CRUD), pencarian, dan filter kategori. Dibangun dengan React.js dan Tailwind CSS.
 
-## Fitur
-- Multi-halaman (Home, Products, About)
-- CRUD operations untuk produk
-- Search dan filter produk
-- Design responsif untuk semua perangkat
-- Rating system untuk produk
-- Modal untuk add/edit produk
+## ✨ Fitur Utama
+
+### 📱 Multi-halaman dengan Navigasi
+- Home Page: Hero section dengan overview aplikasi dan featured products
+- Products Page: Katalog lengkap produk dengan fitur pencarian
+- About Page: Informasi tentang perusahaan dan kontak customer service
+
+### 🛒 Shopping Cart & Checkout
+- Tambah/hapus produk ke keranjang
+- Update quantity produk
+- Form checkout dengan validasi
+- Perhitungan total otomatis
+
+### 🎨 UI/UX Features
+- Design responsif (mobile, tablet, desktop)
+- Font Sans Serif yang clean dan modern
+- Color palette yang sesuai dengan tema teknologi (biru, abu-abu)
+- Navigasi yang konsisten di semua halaman
+- Footer informatif
+
+### 🔍 Advanced Features
+- Fitur pencarian produk real-time
+- Shopping cart dengan indicator jumlah item
+- Modal checkout yang user-friendly
+- Format currency Indonesian Rupiah
+- Mobile-responsive navigation menu
 
 ## Teknologi
 - React.js
@@ -17,10 +36,12 @@ TechStore adalah landing page untuk toko elektronik dengan fitur lengkap termasu
 - Lucide React (icons)
 
 ## Cara Menjalankan
-1. Clone repository
-2. Install dependencies: `npm install`
-3. Jalankan aplikasi: `npm run dev`
-4. Buka browser di ` http://localhost:5173/`
+1. Clone repository ini 
+2. git clone `url`
+3. cd TESTSKILLFRONTEND
+4. Install dependencies: `npm install`
+5. Jalankan aplikasi: `npm run dev`
+6. Buka browser di ` http://localhost:5173/`
 
 ## Cara Menghentikan
 1. Pencet di keyboard bersamaan Ctrl + C
