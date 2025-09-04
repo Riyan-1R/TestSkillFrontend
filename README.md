@@ -38,7 +38,7 @@ TechStore adalah landing page untuk toko elektronik dengan fitur lengkap termasu
 ## Cara Menjalankan
 1. Clone repository ini 
 2. git clone `url`
-3. cd TESTSKILLFRONTEND
+3. cd `file project yang di buat`
 4. Install dependencies: `npm install`
 5. Jalankan aplikasi: `npm run dev`
 6. Buka browser di ` http://localhost:5173/`

@@ -100,7 +100,7 @@ export const initialProducts = [
         price: 110999000,
         category: "Laptop",
         image: "image/acerrrr.jpg",
-        rating: 4.4,
+        rating: 4.2,
         reviews: 100,
         description:
             "Laptop gaming kelas monster dengan layar lengkung 21 inci pertama di dunia.",
@@ -115,7 +115,7 @@ export const initialProducts = [
         price: 11999000,
         category: "Smartphone",
         image: "image/susaaaa.jpeg",
-        rating: 4.7,
+        rating: 4.8,
         reviews: 1223,
         description:
             "Smartphone gaming flagship dengan Snapdragon terbaru, layar AMOLED 165Hz, baterai jumbo, dan fitur AirTrigger untuk pengalaman gaming tanpa batas.",
@@ -130,7 +130,7 @@ export const initialProducts = [
         price: 6599000,
         category: "Audio",
         image: "image/marp.jpeg",
-        rating: 4.5,
+        rating: 4.9,
         reviews: 2349,
         description:
             "Headphone over-ear premium dengan kualitas audio imersif.",
