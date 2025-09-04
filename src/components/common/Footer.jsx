@@ -88,8 +88,7 @@ const Footer = ({ setCurrentPage }) => {
                 <div className="border-t border-gray-700 mt-12 pt-8">
                     <div className="flex flex-col md:flex-row justify-between items-center">
                         <p className="text-gray-400 text-sm">
-                            &copy; 2025 TechStore. All rights reserved. Made with ❤️ in
-                            Indonesia
+                            &copy; 2025 TechStore. All rights reserved. Made for practice Front End
                         </p>
                         <div className="flex space-x-6 mt-4 md:mt-0">
                             <span className="text-sm text-gray-400">Secure payments</span>
