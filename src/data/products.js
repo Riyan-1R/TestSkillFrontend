@@ -1,10 +1,13 @@
+
+import { acer, earphone, iphone16, macbook, max, rog, sumsang, susa, tablet } from './imageImports';
+
 export const initialProducts = [
     {
         id: 1,
         name: "iPhone 16 Pro Max",
         price: 15999000,
         category: "Smartphone",
-        image: "/image/16 16.png",
+        image: iphone16,
         rating: 4.8,
         reviews: 1247,
         description:
@@ -19,7 +22,7 @@ export const initialProducts = [
         name: "MacBook Pro M4",
         price: 32999000,
         category: "Laptop",
-        image: "/image/Apple-MacBook-Air-sky-blue-250305_big.jpg.large.jpg",
+        image: macbook,
         rating: 4.9,
         reviews: 892,
         description:
@@ -34,7 +37,7 @@ export const initialProducts = [
         name: "Samsung Galaxy S25 Ultra",
         price: 12999000,
         category: "Smartphone",
-        image: "/image/sumsang.webp",
+        image: sumsang,
         rating: 4.7,
         reviews: 1563,
         description:
@@ -49,7 +52,7 @@ export const initialProducts = [
         name: "iPad Pro M4",
         price: 8999000,
         category: "Tablet",
-        image: "/image/ipadd.jpeg",
+        image: tablet,
         rating: 4.6,
         reviews: 734,
         description:
@@ -64,7 +67,7 @@ export const initialProducts = [
         name: "AirPods Gen 4",
         price: 3999000,
         category: "Audio",
-        image: "/image/earphone.jpg",
+        image: earphone,
         rating: 4.5,
         reviews: 2156,
         description:
@@ -84,7 +87,7 @@ export const initialProducts = [
         name: "Asus ROG Strix Scar 18",
         price: 18999000,
         category: "Laptop",
-        image: "/image/roooggg.jpeg",
+        image: rog,
         rating: 4.4,
         reviews: 456,
         description:
@@ -99,7 +102,7 @@ export const initialProducts = [
         name: "Acer Predator 21x",
         price: 110999000,
         category: "Laptop",
-        image: "/image/acerrrr.jpg",
+        image: acer,
         rating: 4.2,
         reviews: 100,
         description:
@@ -114,7 +117,7 @@ export const initialProducts = [
         name: "Asus ROG Phone 9 Pro",
         price: 11999000,
         category: "Smartphone",
-        image: "/image/susaaaa.jpeg",
+        image: susa,
         rating: 4.8,
         reviews: 1223,
         description:
@@ -129,7 +132,7 @@ export const initialProducts = [
         name: "AirPods Max 2024",
         price: 6599000,
         category: "Audio",
-        image: "/image/marp.jpeg",
+        image: max,
         rating: 4.9,
         reviews: 2349,
         description:
